@@ -334,7 +334,7 @@ public:
       FORCE_INLINE static uint16_t get_progress_permyriad() { return _get_progress(); }
     #endif
     static uint8_t get_progress_percent() { return uint8_t(_get_progress() / (PROGRESS_SCALE)); }
-    #if LCD_WITH_BLINK
+    #if LCD_WITH_BLINK && HAS_EXTRA_PROGRESS
       #if ENABLED(SHOW_PROGRESS_PERCENT)
         static void drawPercent();
       #endif
@@ -348,6 +348,8 @@ public:
         static void drawInter();
       #endif
       static void rotate_progress();
+    #else
+      static void rotate_progress() {}
     #endif
   #else
     static constexpr uint8_t get_progress_percent() { return 0; }
@@ -501,10 +503,9 @@ public:
 
     #if IS_DWIN_MARLINUI
       static bool did_first_redraw;
-      static bool old_is_printing;
     #endif
 
-    #if EITHER(BABYSTEP_ZPROBE_GFX_OVERLAY, MESH_EDIT_GFX_OVERLAY)
+    #if EITHER(BABYSTEP_GFX_OVERLAY, MESH_EDIT_GFX_OVERLAY)
       static void zoffset_overlay(const int8_t dir);
       static void zoffset_overlay(const_float_t zvalue);
     #endif
@@ -545,7 +546,7 @@ public:
   #endif
 
   static void reset_status_timeout(const millis_t ms) {
-    TERN(SCREENS_CAN_TIME_OUT, return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS, UNUSED(ms));
+    TERN(HAS_SCREEN_TIMEOUT, return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS, UNUSED(ms));
   }
 
   #if HAS_MARLINUI_MENU
@@ -596,11 +597,11 @@ public:
     #endif
 
     FORCE_INLINE static bool screen_is_sticky() {
-      return TERN1(SCREENS_CAN_TIME_OUT, defer_return_to_status);
+      return TERN1(HAS_SCREEN_TIMEOUT, defer_return_to_status);
     }
 
     FORCE_INLINE static void defer_status_screen(const bool defer=true) {
-      TERN(SCREENS_CAN_TIME_OUT, defer_return_to_status = defer, UNUSED(defer));
+      TERN(HAS_SCREEN_TIMEOUT, defer_return_to_status = defer, UNUSED(defer));
     }
 
     static void goto_previous_screen_no_defer() {
@@ -778,7 +779,7 @@ public:
 
 private:
 
-  #if SCREENS_CAN_TIME_OUT
+  #if HAS_SCREEN_TIMEOUT
     static millis_t return_to_status_ms;
     static bool defer_return_to_status;
   #else
